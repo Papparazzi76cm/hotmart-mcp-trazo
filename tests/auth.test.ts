@@ -1,8 +1,8 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {parseVerifiedClaims,requireScope} from '../src/auth.js';
 process.env.AUTH_ISSUER ||= 'https://auth.example.com/';
 process.env.AUTH_AUDIENCE ||= 'https://mcp.example.com/mcp';
+const {parseVerifiedClaims,requireScope}=await import('../src/auth.js');
 
 test('verified claims produce exact scopes and subject',()=>{
  const p=parseVerifiedClaims({sub:'provider|tenant-user-1',exp:2000000000,scope:'hotmart:read hotmart:manage'});
