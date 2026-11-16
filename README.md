@@ -3,6 +3,8 @@
 Servidor MCP multiusuario para consultar datos de Hotmart desde ChatGPT.
 
 ## Estado
+**Fase 2: esquema privado y pruebas unitarias incorporadas en GitHub. No existe todavía una base de datos dedicada ni despliegue público.**
+
 **Prototipo inicial (no apto todavía para producción).** El registro de usuarios, la provisión de tenants y la configuración del proveedor OAuth externo deben terminarse antes de conectarlo a cuentas reales. Los clientes de Hotmart aportan sus propias credenciales API. No se almacenan credenciales en GitHub.
 
 ## Arquitectura
@@ -16,9 +18,9 @@ Servidor MCP multiusuario para consultar datos de Hotmart desde ChatGPT.
 ## Arranque local
 1. Instalar Node.js 22+ y ejecutar `npm install`.
 2. Copiar `.env.example` a `.env` y configurar PostgreSQL, proveedor de identidad y URL HTTPS de publicación.
-3. Aplicar `sql/001_init.sql` a una base PostgreSQL bajo una cuenta restringida.
+3. Crear un proyecto Supabase **nuevo y dedicado** a Hotmart MCP. Aplicar `sql/001_init.sql` únicamente allí; el esquema `hotmart_mcp` es privado, con RLS activado y sin permisos Data API para `anon` ni `authenticated`.
 4. Provisionar tenants y roles desde un proceso administrativo fiable (nunca desde solicitudes de usuarios).
-5. Ejecutar `npm run build`, después `npm run dev`.
+5. Ejecutar `npm run build`, `npm test` y después `npm run dev`.
 
 ## Endpoints
 - `GET /health`: comprobación de proceso (no valida integraciones).
@@ -26,6 +28,12 @@ Servidor MCP multiusuario para consultar datos de Hotmart desde ChatGPT.
 - `POST /mcp`: endpoint MCP, requiere `hotmart:read`.
 - `GET /api/connections`: listar conexiones autorizadas.
 - `POST /api/connections`: añadir credenciales Hotmart, requiere `hotmart:manage` y rol admin/owner.
+
+## Pendientes para producción
+- Crear proyecto Supabase aislado y ejecutar la migración con validación SQL posterior.
+- Configurar proveedor OAuth real y flujos seguros de alta/vinculación de usuarios.
+- Confirmar compilación y pruebas CI antes de despliegue.
+- Revisar rate limits, auditoría, rotación de claves, consentimiento, privacidad y publicación MCP.
 
 ## Seguridad
 Cada consulta filtra por el sujeto JWT y una membership válida; no se admite seleccionar arbitrariamente el tenant de otro usuario. No subir `.env`, secretos ni datos reales. Requiere auditoría, políticas de retención, rate limiting, revocación y revisión de publicación antes de uso comercial.
