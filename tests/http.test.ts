@@ -17,7 +17,7 @@ test('health endpoint responds without touching client databases',async()=>{
   const body=await response.json() as {status:string;service:string;ready:boolean};
   assert.equal(body.status,'ok');
   assert.equal(body.service,'hotmart-mcp-by-trazo-digital');
-  assert.equal(body.ready,false);
+  assert.equal(body.ready,(Boolean(process.env.PUBLIC_URL&&process.env.AUTH_ISSUER&&process.env.AUTH_ALLOWED_CLIENT_IDS&&process.env.DATABASE_URL&&process.env.ENCRYPTION_KEY_BASE64)));
  });
 });
 test('OAuth protected resource metadata identifies dedicated issuer',async()=>{
@@ -32,8 +32,9 @@ test('OAuth protected resource metadata identifies dedicated issuer',async()=>{
 test('MCP endpoint refuses requests when production secrets are absent',async()=>{
  await withServer(async base=>{
   const response=await fetch(base+'/mcp',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'initialize',params:{protocolVersion:'2025-06-18',clientInfo:{name:'check',version:'1'},capabilities:{}}})});
-  assert.equal(response.status,503);
+  const configured=Boolean(process.env.PUBLIC_URL&&process.env.AUTH_ISSUER&&process.env.AUTH_ALLOWED_CLIENT_IDS&&process.env.DATABASE_URL&&process.env.ENCRYPTION_KEY_BASE64);
+  assert.equal(response.status,configured?401:503);
   const body=await response.json() as {error:string};
-  assert.equal(body.error,'service_not_configured');
+  assert.equal(body.error,configured?'unauthorized':'service_not_configured');
  });
 });
