@@ -23,9 +23,12 @@ export function parseVerifiedClaims(payload:{sub?:string;exp?:number;scope?:unkn
 
 const {issuer,audience}=requireAuthConfig();
 const jwks=createRemoteJWKSet(new URL('.well-known/jwks.json',issuer));
-export async function verifyAccessToken(token:string):Promise<Principal>{
- const {payload}=await jwtVerify(token,jwks,{issuer,audience,algorithms:['RS256','ES256']});
+export async function verifySignedJwt(token:string,key:Parameters<typeof jwtVerify>[1],expectedIssuer:string,expectedAudience:string):Promise<Principal>{
+ const {payload}=await jwtVerify(token,key,{issuer:expectedIssuer,audience:expectedAudience,algorithms:['RS256','ES256']});
  return parseVerifiedClaims(payload);
+}
+export async function verifyAccessToken(token:string):Promise<Principal>{
+ return verifySignedJwt(token,jwks,issuer,audience);
 }
 function challenge(res:Response){
  const base=process.env.PUBLIC_URL?.replace(/\/$/,'')??'';
