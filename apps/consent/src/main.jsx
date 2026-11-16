@@ -27,6 +27,7 @@ function App(){
    const {data:{user},error:userError}=await supabase.auth.getUser();
    if(!active)return;
    if(userError||!user){setStatus('login');return;}
+   if(window.location.pathname==='/auth/callback'){window.history.replaceState(null,'',consentPath());}
    setSessionEmail(user.email??'Usuario autenticado');
    const {data:authorization,error:authError}=await supabase.auth.oauth.getAuthorizationDetails(id);
    if(!active)return;
@@ -75,6 +76,4 @@ function App(){
  {error&&<p role="alert" className="error">{error}</p>}
  <footer>Autenticación gestionada por Supabase · Trazo Digital</footer></section></main>;
 }
-const callback=window.location.pathname==='/auth/callback';
-if(callback&&looksLikeId(id)){window.history.replaceState(null,'',consentPath());}
 createRoot(document.getElementById('root')).render(<App/>);
